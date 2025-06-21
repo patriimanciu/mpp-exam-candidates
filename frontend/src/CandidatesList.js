@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { io } from 'socket.io-client';
 import PartyChart from './PartyChart';
@@ -6,12 +6,50 @@ import './CandidatesList.css';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:5001';
 
-const CandidatesList = ({ token, user, onVoteSuccess, loginNews }) => {
+const CandidatesList = ({ token, user, onVoteSuccess, fakeNews, onGenerateNews }) => {
     const [candidates, setCandidates] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     const [winners, setWinners] = useState(null);
+    const [isGenerating, setIsGenerating] = useState(false);
     const navigate = useNavigate();
+
+    const handleGenerateNews = useCallback(async () => {
+        console.log('Attempting to generate news...');
+        try {
+            const response = await fetch('/api/fakenews/generate', { method: 'POST' });
+            console.log('API Response Status:', response.status);
+            const newNews = await response.json();
+            console.log('API Response Body:', newNews);
+
+            if (!response.ok) {
+                console.error('API Error:', newNews.error || 'Failed to generate news.');
+                throw new Error(newNews.error || 'Failed to generate news.');
+            }
+            onGenerateNews(newNews);
+        } catch (err) {
+            console.error('Caught an error in handleGenerateNews:', err);
+            setError(err.message);
+            setIsGenerating(false);
+        }
+    }, [onGenerateNews, setError]);
+
+    useEffect(() => {
+        let intervalId = null;
+        if (isGenerating) {
+            console.log('Starting news generation interval.');
+            handleGenerateNews();
+            intervalId = setInterval(handleGenerateNews, 2000);
+        } else {
+            console.log('News generation stopped.');
+        }
+        return () => {
+            if (intervalId) {
+                console.log('Clearing news generation interval.');
+                clearInterval(intervalId);
+            }
+        };
+    }, [isGenerating, handleGenerateNews]);
 
     useEffect(() => {
         const fetchCandidates = async () => {
@@ -33,7 +71,7 @@ const CandidatesList = ({ token, user, onVoteSuccess, loginNews }) => {
         socket.on('candidates-updated', setCandidates);
         return () => socket.disconnect();
     }, [token]);
-
+    
     const handleDelete = async (id) => {
         if (window.confirm('Are you sure you want to delete this candidate?')) {
             try {
@@ -77,12 +115,27 @@ const CandidatesList = ({ token, user, onVoteSuccess, loginNews }) => {
 
     return (
         <div className="container">
-            {loginNews && (
-                <div className="fake-news-alert">
-                    <p>&#x1F6A8; FAKE NEWS ALERT! &#x1F6A8;</p>
-                    <p className="news-text">{loginNews}</p>
-                </div>
-            )}
+            <div className="fake-news-section">
+                <h3>Your Personalised News Feed</h3>
+                {fakeNews.length > 0 ? (
+                    <ul className="fake-news-list">
+                        {fakeNews.map(news => (
+                            <li key={news.id} className={`fake-news-item ${news.is_positive ? 'positive' : 'negative'}`}>
+                                <p className="news-candidate">{news.candidate}</p>
+                                <p className="news-text-content">{news.news_text}</p>
+                            </li>
+                        ))}
+                    </ul>
+                ) : (
+                    <p className="no-news-message">You have no news yet. Click the button to start generating stories!</p>
+                )}
+                <button 
+                    onClick={() => setIsGenerating(prev => !prev)} 
+                    className={`generate-news-btn ${isGenerating ? 'generating' : ''}`}
+                >
+                    {isGenerating ? '🛑 Stop Generating' : '🤖 Start Auto-Generating News'}
+                </button>
+            </div>
 
             {winners && (
                 <div className="winners-announcement">
@@ -105,9 +158,9 @@ const CandidatesList = ({ token, user, onVoteSuccess, loginNews }) => {
             )}
 
             <div className="header">
-                <h1>MPP Exam - Political Candidates</h1>
-                <p>Meet the candidates running for election</p>
-                {user?.has_voted && <p className="voted-message">You have already cast your vote.</p>}
+                <h1 color='white'>MPP Exam - Political Candidates</h1>
+                <p color='white'>Meet the candidates running for election</p>
+                {user?.has_voted && <p className="voted-message" color='white'>You have already cast your vote.</p>}
                 <div className="header-buttons">
                     <Link to="/candidates/new" className="add-candidate-btn">+ Add New Candidate</Link>
                     <button onClick={handleSimulation} className="simulate-btn">Simulate First Round</button>

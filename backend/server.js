@@ -7,6 +7,7 @@ import pool from './data/db.js';
 import authRoutes from './routes/auth.js';
 import authenticateToken from './middleware/auth.js';
 import { runVoteSimulation } from './services/votingService.js';
+import { generateUniqueFakeNews } from './services/fakeNewsService.js';
 
 const app = express();
 const server = createServer(app);
@@ -181,6 +182,27 @@ app.post('/api/simulate-votes', authenticateToken, async (req, res) => {
     });
   } catch (err) {
     res.status(500).json({ error: err.message || 'Failed to run vote simulation.' });
+  }
+});
+
+// Fake News Endpoints
+app.get('/api/fakenews', authenticateToken, async (req, res) => {
+  try {
+    const result = await pool.query('SELECT * FROM FakeNews WHERE voter_cnp = $1 ORDER BY created_at DESC', [req.user.cnp]);
+    res.json(result.rows);
+  } catch (err) {
+    console.error('Failed to get fake news:', err);
+    res.status(500).json({ error: 'Failed to retrieve fake news.' });
+  }
+});
+
+app.post('/api/fakenews/generate', authenticateToken, async (req, res) => {
+  try {
+    const newNews = await generateUniqueFakeNews(req.user.cnp);
+    res.status(201).json(newNews);
+  } catch (err) {
+    console.error('Failed to generate fake news:', err);
+    res.status(500).json({ error: err.message || 'Failed to generate new fake news item.' });
   }
 });
 

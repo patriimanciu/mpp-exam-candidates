@@ -10,14 +10,6 @@ import './App.css';
 // Get backend URL from environment variables
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:5001';
 
-const FAKE_NEWS = [
-    "Candidate GEORGE SIMION promises free pizza for everyone if elected!",
-    "Sources say NICUȘOR DAN was seen negotiating with aliens for advanced technology.",
-    "ELENA LASCONI plans to replace all public transportation with a network of giant slides.",
-    "A leaked document reveals GEORGE SIMION's secret plan to make Mondays optional.",
-    "Insiders claim CĂLIN GEORGESCU communicates exclusively through interpretive dance."
-];
-
 const App = () => {
   const [token, setToken] = useState(localStorage.getItem('token'));
   const [user, setUser] = useState(() => {
@@ -34,13 +26,25 @@ const App = () => {
   const [editingCandidate, setEditingCandidate] = useState(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [socket, setSocket] = useState(null);
-  const [loginNews, setLoginNews] = useState(null);
+  const [fakeNews, setFakeNews] = useState([]);
+
+  const fetchFakeNews = async () => {
+    try {
+      const response = await fetch('/api/fakenews');
+      if (!response.ok) throw new Error('Could not fetch news');
+      const data = await response.json();
+      setFakeNews(data);
+    } catch (error) {
+      console.error(error);
+    }
+  };
 
   const handleLogin = (newToken, newUser) => {
     localStorage.setItem('token', newToken);
     localStorage.setItem('user', JSON.stringify(newUser));
     setToken(newToken);
     setUser(newUser);
+    fetchFakeNews();
   };
 
   const handleLogout = useCallback(() => {
@@ -48,6 +52,8 @@ const App = () => {
     localStorage.removeItem('user');
     setToken(null);
     setUser(null);
+    setCandidates([]);
+    setFakeNews([]);
   }, []);
 
   const markUserAsVoted = () => {
@@ -56,15 +62,15 @@ const App = () => {
     localStorage.setItem('user', JSON.stringify(updatedUser));
   };
 
+  const addFakeNews = (newNewsItem) => {
+    setFakeNews(prevNews => [newNewsItem, ...prevNews]);
+  };
+
   useEffect(() => {
-    if (token && !loginNews) {
-      const randomIndex = Math.floor(Math.random() * FAKE_NEWS.length);
-      setLoginNews(FAKE_NEWS[randomIndex]);
+    if (token) {
+      fetchFakeNews();
     }
-    if (!token) {
-      setLoginNews(null);
-    }
-  }, [token, loginNews]);
+  }, [token]);
 
   // This effect hook is designed to automatically log out the user if an API call
   // returns a 401 (Unauthorized) or 403 (Forbidden) status, which indicates an
@@ -260,7 +266,7 @@ const App = () => {
         <main>
           <Routes>
             <Route path="/" element={<Navigate to="/candidates" />} />
-            <Route path="/candidates" element={<CandidatesList token={token} user={user} onVoteSuccess={markUserAsVoted} loginNews={loginNews} />} />
+            <Route path="/candidates" element={<CandidatesList token={token} user={user} onVoteSuccess={markUserAsVoted} fakeNews={fakeNews} onGenerateNews={addFakeNews} />} />
             <Route path="/candidates/new" element={<CandidateForm token={token} onSave={() => {}} />} />
             <Route path="/candidates/:id/edit" element={<CandidateForm token={token} onSave={() => {}} />} />
           </Routes>
