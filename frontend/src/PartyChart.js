@@ -2,10 +2,14 @@ import React, { useMemo } from 'react';
 import './PartyChart.css';
 
 function PartyChart({ candidates }) {
+  if (candidates && candidates.length > 0) {
+    console.log("Inspecting the first candidate object received by the chart:", candidates[0]);
+  }
+
   const chartData = useMemo(() => {
     // Count candidates per party
     const partyCounts = candidates.reduce((acc, candidate) => {
-      const party = candidate.politicalParty;
+      const party = candidate.political_party;
       acc[party] = (acc[party] || 0) + 1;
       return acc;
     }, {});

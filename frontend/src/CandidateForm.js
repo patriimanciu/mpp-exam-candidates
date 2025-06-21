@@ -6,8 +6,9 @@ function CandidateForm({ candidate, onSave }) {
   const [formData, setFormData] = useState({
     name: '',
     image: '',
-    politicalParty: '',
-    description: ''
+    political_party: '',
+    description: '',
+    votes: 0
   });
   const navigate = useNavigate();
 
@@ -16,15 +17,17 @@ function CandidateForm({ candidate, onSave }) {
       setFormData({
         name: candidate.name || '',
         image: candidate.image || '',
-        politicalParty: candidate.politicalParty || '',
-        description: candidate.description || ''
+        political_party: candidate.political_party || '',
+        description: candidate.description || '',
+        votes: candidate.votes || 0
       });
     } else {
       setFormData({
         name: '',
         image: '',
-        politicalParty: '',
-        description: ''
+        political_party: '',
+        description: '',
+        votes: 0
       });
     }
   }, [candidate]);
@@ -39,7 +42,7 @@ function CandidateForm({ candidate, onSave }) {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (!formData.name.trim() || !formData.politicalParty.trim() || !formData.description.trim()) {
+    if (!formData.name.trim() || !formData.political_party.trim() || !formData.description.trim()) {
       alert('Please fill in all required fields');
       return;
     }
@@ -82,12 +85,12 @@ function CandidateForm({ candidate, onSave }) {
           </div>
 
           <div className="form-group">
-            <label htmlFor="politicalParty">Political Party *</label>
+            <label htmlFor="political_party">Political Party *</label>
             <input
               type="text"
-              id="politicalParty"
-              name="politicalParty"
-              value={formData.politicalParty}
+              id="political_party"
+              name="political_party"
+              value={formData.political_party}
               onChange={handleChange}
               placeholder="Enter political party"
               required

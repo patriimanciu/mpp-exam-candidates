@@ -68,8 +68,9 @@ function CandidatesList({
             />
             <div className="candidate-info">
               <h3 className="candidate-name">{candidate.name}</h3>
-              <div className="candidate-party">{candidate.politicalParty}</div>
+             <div className="candidate-party">{candidate.political_party}</div>
               <p className="candidate-description">{candidate.description}</p>
+              <div className="candidate-votes">Votes: {candidate.votes}</div>
               
               <div className="candidate-actions">
                 <button 

@@ -1,0 +1,3 @@
+{
+  "connectionString": "postgresql://neondb_owner:npg_5Pw9njNuJlHR@ep-restless-resonance-a9rgjww8-pooler.gwc.azure.neon.tech/neondb?sslmode=require"
+} 

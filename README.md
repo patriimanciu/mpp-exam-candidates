@@ -1,155 +1,117 @@
 # MPP Exam - Political Candidates App
 
-A full-stack application for managing political candidates with real-time charts and WebSocket functionality.
+A full-stack application for managing and viewing political candidates, with data served from a central database and real-time updates via WebSockets.
 
 ## Features
 
-- ✅ **CRUD Operations**: Create, Read, Update, Delete candidates
-- ✅ **Real-time Charts**: Dynamic bar charts showing candidates per party
-- ✅ **WebSocket Integration**: Real-time updates across multiple clients
-- ✅ **Random Data Generation**: Automated candidate generation for testing
-- ✅ **Responsive Design**: Works on desktop and mobile devices
+- ✅ **Database Integration**: Candidate data is managed in a PostgreSQL database.
+- ✅ **CRUD Operations**: Create, Read, Update, and Delete candidates.
+- ✅ **Voting System**: Increment vote counts for candidates.
+- ✅ **Real-time Updates**: WebSocket integration ensures all connected clients see changes instantly.
+- ✅ **Dynamic Sorting**: Candidates are automatically sorted by vote count.
+- ✅ **Responsive Design**: Works on desktop and mobile devices.
 
 ## Tech Stack
 
 ### Backend
-- **Node.js** with Express
+- **Node.js** with **Express**
+- **PostgreSQL** (e.g., on Neon)
 - **Socket.io** for WebSocket functionality
 - **CORS** enabled for cross-origin requests
 
 ### Frontend
 - **React** with hooks
 - **Socket.io-client** for real-time communication
-- **Custom CSS** for styling
 - **React Router** for navigation
+- **Custom CSS** for styling
 
-## Railway Deployment Instructions
+## Database Schema
 
-### Prerequisites
-1. Create a Railway account at [railway.app](https://railway.app)
-2. Install Railway CLI: `npm install -g @railway/cli`
-3. Login to Railway: `railway login`
+The application requires a PostgreSQL database with a `Candidates` table. Use the following SQL command to create it:
 
-### Backend Deployment
-
-1. **Navigate to backend directory:**
-   ```bash
-   cd backend
-   ```
-
-2. **Initialize Railway project:**
-   ```bash
-   railway init
-   ```
-
-3. **Set environment variables:**
-   ```bash
-   railway variables set FRONTEND_URL=https://your-frontend-url.railway.app
-   ```
-
-4. **Deploy:**
-   ```bash
-   railway up
-   ```
-
-5. **Get the backend URL:**
-   ```bash
-   railway domain
-   ```
-
-### Frontend Deployment
-
-1. **Navigate to frontend directory:**
-   ```bash
-   cd frontend
-   ```
-
-2. **Initialize Railway project:**
-   ```bash
-   railway init
-   ```
-
-3. **Set environment variables:**
-   ```bash
-   railway variables set REACT_APP_BACKEND_URL=https://your-backend-url.railway.app
-   ```
-
-4. **Deploy:**
-   ```bash
-   railway up
-   ```
-
-5. **Get the frontend URL:**
-   ```bash
-   railway domain
-   ```
-
-### Environment Variables
-
-#### Backend (.env)
-```env
-PORT=5001
-FRONTEND_URL=https://your-frontend-url.railway.app
-NODE_ENV=production
+```sql
+CREATE TABLE "Candidates" (
+    id SERIAL PRIMARY KEY,
+    name TEXT NOT NULL,
+    image TEXT,
+    political_party TEXT,
+    description TEXT,
+    votes INTEGER DEFAULT 0
+);
 ```
+*Note: The table name "Candidates" is case-sensitive and must be quoted.*
 
-#### Frontend (.env)
+## Environment Variables
+
+To run this project, you need a `.env` file in the `backend` directory with your database connection details.
+
+### Backend (`backend/.env`)
 ```env
-REACT_APP_BACKEND_URL=https://your-backend-url.railway.app
+# Full connection string from your Neon (or other PostgreSQL) provider
+DATABASE_URL=postgresql://user:password@host:port/dbname?sslmode=require
+
+# The URL of your running frontend application
+FRONTEND_URL=http://localhost:3000
 ```
 
 ## Local Development
 
-### Backend
+### Prerequisites
+1. **Node.js 18+** installed.
+2. A running **PostgreSQL** database.
+3. The `Candidates` table created in your database using the schema above.
+4. The `backend/.env` file configured with your database URL.
+
+### Backend Setup
 ```bash
+# Navigate to the backend directory
 cd backend
+
+# Install dependencies
 npm install
+
+# Start the development server
 npm run dev
 ```
+The server will start on `http://localhost:5001`.
 
-### Frontend
+### Frontend Setup
 ```bash
+# Navigate to the frontend directory
 cd frontend
+
+# Install dependencies
 npm install
+
+# Start the development server
 npm start
 ```
+The application will be available at `http://localhost:3000`.
 
 ## API Endpoints
 
-- `GET /` - Health check
-- `GET /health` - Detailed health status
-- `GET /api/candidates` - Get all candidates
-- `GET /api/candidates/:id` - Get single candidate
-- `POST /api/candidates` - Create new candidate
-- `PUT /api/candidates/:id` - Update candidate
-- `DELETE /api/candidates/:id` - Delete candidate
-
-## WebSocket Events
-
-- `candidates-updated` - Full candidate list update
-- `candidate-added` - New candidate notification
-- `candidate-updated` - Candidate edit notification
-- `candidate-deleted` - Candidate deletion notification
-- `start-generation` - Begin random generation
-- `stop-generation` - Stop random generation
+-   `GET /api/candidates`: Get a list of all candidates.
+-   `POST /api/candidates`: Create a new candidate.
+-   `PUT /api/candidates/:id`: Update an existing candidate.
+-   `DELETE /api/candidates/:id`: Delete a candidate.
+-   `POST /api/candidates/:id/vote`: Increment the vote count for a candidate.
 
 ## Project Structure
-
 ```
 mpp-exam/
 ├── backend/
-│   ├── server.js
+│   ├── data/
+│   │   └── db.js         # Database connection
+│   ├── server.js         # Main Express server
 │   ├── package.json
-│   └── railway.toml
+│   └── .env              # (You must create this)
 ├── frontend/
 │   ├── src/
 │   │   ├── App.js
 │   │   ├── CandidatesList.js
 │   │   ├── CandidateForm.js
-│   │   ├── PartyChart.js
-│   │   └── *.css
-│   ├── package.json
-│   └── railway.toml
+│   │   └── ...
+│   └── package.json
 └── README.md
 ```
 
