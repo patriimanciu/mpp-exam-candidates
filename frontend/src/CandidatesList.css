@@ -26,19 +26,41 @@
     margin-bottom: 1.5rem;
 }
 
-.add-candidate-btn {
+.header-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.add-candidate-btn, .simulate-btn {
     display: inline-block;
-    background-color: #007bff;
     color: white;
     padding: 10px 20px;
     border-radius: 5px;
     text-decoration: none;
     font-weight: bold;
-    transition: background-color 0.3s;
+    transition: background-color 0.3s, transform 0.2s;
+    border: none;
+    cursor: pointer;
+}
+
+.add-candidate-btn {
+    background-color: #007bff;
+}
+
+.simulate-btn {
+    background-color: #17a2b8;
 }
 
 .add-candidate-btn:hover {
     background-color: #0056b3;
+    transform: translateY(-2px);
+}
+
+.simulate-btn:hover {
+    background-color: #117a8b;
+    transform: translateY(-2px);
 }
 
 /* Grid for candidates */
@@ -178,14 +200,6 @@
     margin-bottom: 1rem;
 }
 
-.header-buttons {
-  display: flex;
-  gap: 1rem;
-  justify-content: center;
-  flex-wrap: wrap;
-  margin-top: 1rem;
-}
-
 .generate-btn {
   background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
   color: white;
@@ -241,4 +255,103 @@
   .btn-delete {
     width: 100%;
   }
+}
+
+.voted-message {
+    color: #28a745;
+    font-weight: bold;
+    margin-top: -1rem;
+    margin-bottom: 1rem;
+}
+
+.fake-news-alert {
+    background-color: #fff3cd;
+    color: #856404;
+    padding: 1rem;
+    border: 1px solid #ffeeba;
+    border-radius: 8px;
+    margin-bottom: 2rem;
+    text-align: center;
+    font-weight: bold;
+    font-size: 1.1rem;
+}
+
+.fake-news-alert .news-text {
+    margin: 0.5rem 0 0 0;
+    font-weight: normal;
+}
+
+.winners-announcement {
+    background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+    border: 1px solid #dee2e6;
+    border-radius: 12px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    text-align: center;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+}
+
+.winners-announcement h2 {
+    font-size: 2.5rem;
+    color: #212529;
+    margin-bottom: 0.5rem;
+}
+
+.winners-announcement p {
+    font-size: 1.1rem;
+    color: #495057;
+    margin-bottom: 1.5rem;
+}
+
+.winners-list {
+    display: flex;
+    justify-content: center;
+    gap: 2rem;
+    flex-wrap: wrap;
+    margin-bottom: 2rem;
+}
+
+.winner-card {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    flex-basis: 300px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.winner-rank {
+    font-size: 1.5rem;
+    font-weight: bold;
+}
+.winner-rank.gold { color: #ffc107; }
+.winner-rank.silver { color: #6c757d; }
+
+.winner-name {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #343a40;
+}
+
+.winner-votes {
+    font-size: 1rem;
+    color: #495057;
+}
+
+.dismiss-btn {
+    background-color: #6c757d;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.dismiss-btn:hover {
+    background-color: #5a6268;
 } 

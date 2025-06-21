@@ -6,6 +6,7 @@ import 'dotenv/config';
 import pool from './data/db.js';
 import authRoutes from './routes/auth.js';
 import authenticateToken from './middleware/auth.js';
+import { runVoteSimulation } from './services/votingService.js';
 
 const app = express();
 const server = createServer(app);
@@ -167,6 +168,19 @@ app.post('/api/candidates/:id/vote', authenticateToken, async (req, res) => {
     res.status(500).json({ error: 'Failed to process vote.' });
   } finally {
     client.release();
+  }
+});
+
+app.post('/api/simulate-votes', authenticateToken, async (req, res) => {
+  try {
+    const winners = await runVoteSimulation();
+    broadcastCandidates(); // Ensure all clients see the new vote totals
+    res.json({
+      message: 'Vote simulation completed successfully!',
+      winners: winners
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message || 'Failed to run vote simulation.' });
   }
 });
 
