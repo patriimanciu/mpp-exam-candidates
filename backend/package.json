@@ -7,7 +7,9 @@
   "scripts": {
     "start": "node server.js",
     "dev": "nodemon server.js",
-    "simulate-votes": "node scripts/simulateVotes.js"
+    "simulate-votes": "node scripts/simulateVotes.js",
+    "generate-voters": "node scripts/generateVoters.js",
+    "generate-news": "node scripts/generateNews.js"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",

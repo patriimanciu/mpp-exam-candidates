@@ -98,7 +98,7 @@ const CandidatesList = ({ token, user, onVoteSuccess, fakeNews, onGenerateNews }
     };
 
     const handleSimulation = async () => {
-        if (window.confirm('This will simulate 1000 random votes and determine the top two candidates. Are you sure?')) {
+        if (window.confirm('This will simulate a full election round based on the fake news each user has received. This will reset all current votes. Are you sure?')) {
             try {
                 const response = await fetch('/api/simulate-votes', { method: 'POST' });
                 const result = await response.json();
