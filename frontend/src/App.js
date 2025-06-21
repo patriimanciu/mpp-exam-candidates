@@ -1,20 +1,82 @@
-import React, { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import React, { useState, useEffect, useCallback } from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { io } from 'socket.io-client';
 import CandidatesList from './CandidatesList';
 import CandidateForm from './CandidateForm';
+import Login from './Login';
+import Register from './Register';
 import './App.css';
 
 // Get backend URL from environment variables
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:5001';
 
-function App() {
+const App = () => {
+  const [token, setToken] = useState(localStorage.getItem('token'));
+  const [user, setUser] = useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem('user'));
+    } catch {
+      return null;
+    }
+  });
+  const [isRegister, setIsRegister] = useState(false);
   const [candidates, setCandidates] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [editingCandidate, setEditingCandidate] = useState(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [socket, setSocket] = useState(null);
+
+  const handleLogin = (newToken, newUser) => {
+    localStorage.setItem('token', newToken);
+    localStorage.setItem('user', JSON.stringify(newUser));
+    setToken(newToken);
+    setUser(newUser);
+  };
+
+  const handleLogout = useCallback(() => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    setToken(null);
+    setUser(null);
+  }, []);
+
+  const markUserAsVoted = () => {
+    const updatedUser = { ...user, has_voted: true };
+    setUser(updatedUser);
+    localStorage.setItem('user', JSON.stringify(updatedUser));
+  };
+
+  // This effect hook is designed to automatically log out the user if an API call
+  // returns a 401 (Unauthorized) or 403 (Forbidden) status, which indicates an
+  // invalid or expired token. It works by "monkey-patching" the global fetch function.
+  useEffect(() => {
+    const originalFetch = window.fetch;
+
+    window.fetch = async (url, options) => {
+      // Add the Authorization header to all outgoing API requests
+      const augmentedOptions = {
+        ...options,
+        headers: {
+          ...options?.headers,
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+        },
+      };
+      
+      const response = await originalFetch(url, augmentedOptions);
+
+      if ((response.status === 401 || response.status === 403) && url.startsWith('/api/')) {
+        console.error('Authentication error, logging out.');
+        handleLogout();
+      }
+
+      return response;
+    };
+
+    return () => {
+      window.fetch = originalFetch;
+    };
+  }, [handleLogout]);
 
   // Initialize WebSocket connection
   useEffect(() => {
@@ -161,54 +223,32 @@ function App() {
     }
   };
 
-  if (loading) {
-    return (
-      <div className="container">
-        <div className="header">
-          <h1>MPP Exam - Political Candidates</h1>
-          <p>Meet the candidates running for election</p>
-        </div>
-        <div className="loading">Loading candidates...</div>
-      </div>
+  if (!token) {
+    return isRegister ? (
+      <Register onRegister={handleLogin} onSwitch={() => setIsRegister(false)} />
+    ) : (
+      <Login onLogin={handleLogin} onSwitch={() => setIsRegister(true)} />
     );
   }
 
   return (
     <Router>
       <div className="App">
-        {error && (
-          <div className="error-banner">
-            {error}
-            <button onClick={() => setError(null)}>✕</button>
-          </div>
-        )}
-        <Routes>
-          <Route 
-            path="/" 
-            element={
-              <CandidatesList 
-                candidates={candidates}
-                onUpdateCandidate={setEditingCandidate}
-                onDeleteCandidate={handleDelete}
-                isGenerating={isGenerating}
-                onStartGenerating={startGenerating}
-                onStopGenerating={stopGenerating}
-              />
-            } 
-          />
-          <Route 
-            path="/form" 
-            element={
-              <CandidateForm 
-                candidate={editingCandidate}
-                onSave={handleSave}
-              />
-            } 
-          />
-        </Routes>
+        <header className="App-header">
+          <h1>Welcome, {user.cnp}</h1>
+          <button onClick={handleLogout} className="logout-button">Logout</button>
+        </header>
+        <main>
+          <Routes>
+            <Route path="/" element={<Navigate to="/candidates" />} />
+            <Route path="/candidates" element={<CandidatesList token={token} user={user} onVoteSuccess={markUserAsVoted} />} />
+            <Route path="/candidates/new" element={<CandidateForm token={token} onSave={() => {}} />} />
+            <Route path="/candidates/:id/edit" element={<CandidateForm token={token} onSave={() => {}} />} />
+          </Routes>
+        </main>
       </div>
     </Router>
   );
-}
+};
 
 export default App; 

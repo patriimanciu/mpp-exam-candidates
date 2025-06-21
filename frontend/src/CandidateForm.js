@@ -1,127 +1,132 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import './CandidateForm.css';
 
-function CandidateForm({ candidate, onSave }) {
-  const [formData, setFormData] = useState({
-    name: '',
-    image: '',
-    political_party: '',
-    description: '',
-    votes: 0
-  });
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    if (candidate && candidate.id) {
-      setFormData({
-        name: candidate.name || '',
-        image: candidate.image || '',
-        political_party: candidate.political_party || '',
-        description: candidate.description || '',
-        votes: candidate.votes || 0
-      });
-    } else {
-      setFormData({
+const CandidateForm = ({ token }) => {
+    const [candidate, setCandidate] = useState({
         name: '',
         image: '',
         political_party: '',
         description: '',
-        votes: 0
-      });
-    }
-  }, [candidate]);
+    });
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState('');
+    const navigate = useNavigate();
+    const { id } = useParams();
+    const isEditing = Boolean(id);
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
-  };
+    useEffect(() => {
+        if (isEditing) {
+            setLoading(true);
+            const fetchCandidate = async () => {
+                try {
+                    const response = await fetch(`/api/candidates/${id}`);
+                    if (!response.ok) {
+                        throw new Error('Failed to fetch candidate data.');
+                    }
+                    const data = await response.json();
+                    setCandidate(data);
+                } catch (err) {
+                    setError(err.message);
+                } finally {
+                    setLoading(false);
+                }
+            };
+            fetchCandidate();
+        }
+    }, [id, isEditing]);
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    if (!formData.name.trim() || !formData.political_party.trim() || !formData.description.trim()) {
-      alert('Please fill in all required fields');
-      return;
-    }
-    onSave(formData);
-    navigate('/');
-  };
+    const handleChange = (e) => {
+        const { name, value } = e.target;
+        setCandidate(prev => ({ ...prev, [name]: value }));
+    };
 
-  const handleCancel = () => {
-    navigate('/');
-  };
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        setError('');
+        setLoading(true);
 
-  return (
-    <div className="candidate-form-container">
-      <div className="candidate-form">
-        <h2>{candidate && candidate.id ? 'Edit Candidate' : 'Add New Candidate'}</h2>
-        <form onSubmit={handleSubmit}>
-          <div className="form-group">
-            <label htmlFor="name">Name *</label>
-            <input
-              type="text"
-              id="name"
-              name="name"
-              value={formData.name}
-              onChange={handleChange}
-              placeholder="Enter candidate name"
-              required
-            />
-          </div>
+        const url = isEditing ? `/api/candidates/${id}` : '/api/candidates';
+        const method = isEditing ? 'PUT' : 'POST';
 
-          <div className="form-group">
-            <label htmlFor="image">Image URL</label>
-            <input
-              type="url"
-              id="image"
-              name="image"
-              value={formData.image}
-              onChange={handleChange}
-              placeholder="Enter image URL"
-            />
-          </div>
+        try {
+            const response = await fetch(url, {
+                method: method,
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(candidate),
+            });
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || 'Failed to save candidate.');
+            }
+            navigate('/candidates');
+        } catch (err) {
+            setError(err.message);
+        } finally {
+            setLoading(false);
+        }
+    };
 
-          <div className="form-group">
-            <label htmlFor="political_party">Political Party *</label>
-            <input
-              type="text"
-              id="political_party"
-              name="political_party"
-              value={formData.political_party}
-              onChange={handleChange}
-              placeholder="Enter political party"
-              required
-            />
-          </div>
+    if (loading && isEditing) return <div className="loading">Loading...</div>;
 
-          <div className="form-group">
-            <label htmlFor="description">Description *</label>
-            <textarea
-              id="description"
-              name="description"
-              value={formData.description}
-              onChange={handleChange}
-              placeholder="Enter candidate description"
-              rows="4"
-              required
-            />
-          </div>
-
-          <div className="form-actions">
-            <button type="button" onClick={handleCancel} className="btn-cancel">
-              Cancel
-            </button>
-            <button type="submit" className="btn-save">
-              {candidate && candidate.id ? 'Update' : 'Add'} Candidate
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
-  );
-}
+    return (
+        <div className="form-container">
+            <h2>{isEditing ? 'Edit Candidate' : 'Add New Candidate'}</h2>
+            {error && <p className="error-message">{error}</p>}
+            <form onSubmit={handleSubmit} className="candidate-form">
+                <div className="form-group">
+                    <label htmlFor="name">Name</label>
+                    <input
+                        type="text"
+                        id="name"
+                        name="name"
+                        value={candidate.name}
+                        onChange={handleChange}
+                        required
+                    />
+                </div>
+                <div className="form-group">
+                    <label htmlFor="political_party">Political Party</label>
+                    <input
+                        type="text"
+                        id="political_party"
+                        name="political_party"
+                        value={candidate.political_party}
+                        onChange={handleChange}
+                        required
+                    />
+                </div>
+                <div className="form-group">
+                    <label htmlFor="image">Image URL</label>
+                    <input
+                        type="url"
+                        id="image"
+                        name="image"
+                        value={candidate.image}
+                        onChange={handleChange}
+                    />
+                </div>
+                <div className="form-group">
+                    <label htmlFor="description">Description</label>
+                    <textarea
+                        id="description"
+                        name="description"
+                        value={candidate.description}
+                        onChange={handleChange}
+                        rows="4"
+                    />
+                </div>
+                <div className="form-actions">
+                    <button type="submit" disabled={loading} className="button-save">
+                        {loading ? 'Saving...' : 'Save Candidate'}
+                    </button>
+                    <button type="button" onClick={() => navigate('/candidates')} className="button-cancel">
+                        Cancel
+                    </button>
+                </div>
+            </form>
+        </div>
+    );
+};
 
 export default CandidateForm; 
