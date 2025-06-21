@@ -5,6 +5,9 @@ import CandidatesList from './CandidatesList';
 import CandidateForm from './CandidateForm';
 import './App.css';
 
+// Get backend URL from environment variables
+const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:5001';
+
 function App() {
   const [candidates, setCandidates] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -15,7 +18,7 @@ function App() {
 
   // Initialize WebSocket connection
   useEffect(() => {
-    const newSocket = io('http://localhost:5001');
+    const newSocket = io(BACKEND_URL);
     setSocket(newSocket);
 
     // WebSocket event handlers
@@ -60,7 +63,7 @@ function App() {
   // API functions for CRUD operations
   const createCandidate = async (candidateData) => {
     try {
-      const response = await fetch('http://localhost:5001/api/candidates', {
+      const response = await fetch(`${BACKEND_URL}/api/candidates`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -83,7 +86,7 @@ function App() {
 
   const updateCandidate = async (id, candidateData) => {
     try {
-      const response = await fetch(`http://localhost:5001/api/candidates/${id}`, {
+      const response = await fetch(`${BACKEND_URL}/api/candidates/${id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -106,7 +109,7 @@ function App() {
 
   const deleteCandidate = async (id) => {
     try {
-      const response = await fetch(`http://localhost:5001/api/candidates/${id}`, {
+      const response = await fetch(`${BACKEND_URL}/api/candidates/${id}`, {
         method: 'DELETE',
       });
       

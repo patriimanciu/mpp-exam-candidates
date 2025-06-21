@@ -10,7 +10,7 @@ const app = express();
 const server = createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: "http://localhost:3000",
+    origin: process.env.FRONTEND_URL || "http://localhost:3000",
     methods: ["GET", "POST"]
   }
 });
@@ -18,7 +18,10 @@ const io = new Server(server, {
 const PORT = process.env.PORT || 5001;
 
 // Middleware
-app.use(cors());
+app.use(cors({
+  origin: process.env.FRONTEND_URL || "http://localhost:3000",
+  credentials: true
+}));
 app.use(express.json());
 
 // Sample candidates data (in a real app, this would come from a database)
@@ -185,7 +188,20 @@ io.on('connection', (socket) => {
 
 // Routes
 app.get('/', (req, res) => {
-  res.json({ message: 'Welcome to MPP Exam Backend API - Political Candidates' });
+  res.json({ 
+    message: 'Welcome to MPP Exam Backend API - Political Candidates',
+    status: 'running',
+    timestamp: new Date().toISOString()
+  });
+});
+
+// Health check endpoint
+app.get('/health', (req, res) => {
+  res.json({ 
+    status: 'healthy',
+    timestamp: new Date().toISOString(),
+    candidatesCount: candidates.length
+  });
 });
 
 // GET all candidates
@@ -289,4 +305,5 @@ server.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
   console.log(`API available at http://localhost:${PORT}/api/candidates`);
   console.log(`WebSocket server ready for connections`);
+  console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
 }); 
