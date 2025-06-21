@@ -6,7 +6,7 @@ import './CandidatesList.css';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:5001';
 
-const CandidatesList = ({ token, user, onVoteSuccess }) => {
+const CandidatesList = ({ token, user, onVoteSuccess, loginNews }) => {
     const [candidates, setCandidates] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
@@ -74,6 +74,22 @@ const CandidatesList = ({ token, user, onVoteSuccess }) => {
 
     return (
         <div className="container">
+            {loginNews && (
+                <div style={{
+                    backgroundColor: '#fff3cd',
+                    color: '#856404',
+                    padding: '1rem',
+                    border: '1px solid #ffeeba',
+                    borderRadius: '8px',
+                    marginBottom: '2rem',
+                    textAlign: 'center',
+                    fontWeight: 'bold',
+                    fontSize: '1.1rem',
+                }}>
+                    <p style={{ margin: 0 }}>&#x1F6A8; FAKE NEWS ALERT! &#x1F6A8;</p>
+                    <p style={{ margin: '0.5rem 0 0 0', fontWeight: 'normal' }}>{loginNews}</p>
+                </div>
+            )}
             <div className="header">
                 <h1>MPP Exam - Political Candidates</h1>
                 <p>Meet the candidates running for election</p>
